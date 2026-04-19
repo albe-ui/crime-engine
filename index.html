@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERMINALE SQUADRA OPERATIVA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Variabili di colore dinamiche */
+        :root { --team: #444; --bg: #e5e5d1; }
+        body.team-A { --team: #2e7d32; --accent: #4ade80; } /* Squadra A - Giovani (Verde) */
+        body.team-B { --team: #1565c0; --accent: #3b82f6; } /* Squadra B - Vecchi (Blu) */
+        
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 15px; 
+            color: #222; 
+            background-image: url('https://www.transparenttextures.com/patterns/felt.png'); 
+        }
+
+        /* Intestazione */
+        .header { 
+            text-align: center; 
+            border-bottom: 5px solid var(--team); 
+            margin-bottom: 25px; 
+            padding-bottom: 15px; 
+            background: rgba(255,255,255,0.3);
+            border-radius: 0 0 10px 10px;
+        }
+        #display-nome { font-family: 'Special Elite'; font-size: 1.8rem; color: var(--team); text-transform: uppercase; }
+        .slot-indicator { font-size: 0.7rem; font-weight: bold; opacity: 0.6; margin-top: 5px; }
+
+        /* Messaggi Regia */
+        #messaggio-regia { 
+            background: #111; 
+            color: #4ade80; 
+            padding: 15px; 
+            display: none; 
+            border-left: 6px solid var(--accent); 
+            margin-bottom: 25px; 
+            font-family: 'Fira Code', monospace; 
+            font-size: 0.9rem;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Contenitore Indizi */
+        #lista-indizi { display: flex; flex-direction: column; gap: 30px; }
+        
+        .indizio-card { 
+            background: white; 
+            padding: 15px; 
+            box-shadow: 10px 10px 25px rgba(0,0,0,0.2); 
+            border: 1px solid #ccc; 
+            transform: rotate(-0.5deg);
+            transition: transform 0.3s;
+        }
+        .indizio-card:nth-child(even) { transform: rotate(0.8deg); }
+
+        .media-box img, .media-box video { width: 100%; display: block; border: 1px solid #eee; }
+        
+        .text-box { 
+            background: #fff; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            white-space: pre-wrap; 
+            font-size: 1rem; 
+            line-height: 1.4;
+            border-left: 5px solid var(--team);
+            font-family: 'Courier New', monospace;
+        }
+
+        .titolo-indizio { 
+            margin-top: 15px; 
+            text-align: center; 
+            font-family: 'Special Elite'; 
+            border-top: 1px dashed #bbb; 
+            padding-top: 12px; 
+            font-weight: bold; 
+            color: #d32f2f;
+            font-size: 1.1rem;
+        }
+
+        /* Box Accusa */
+        .accusa-box { 
+            margin-top: 50px; 
+            padding: 20px; 
+            background: #d1d1b3; 
+            border: 3px double #888; 
+            margin-bottom: 40px;
+        }
+        textarea { 
+            width: 100%; 
+            height: 120px; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            border: 1px solid #888; 
+            font-family: inherit; 
+            background: #fdfdf5;
+            resize: none;
+        }
+        button { 
+            width: 100%; 
+            padding: 18px; 
+            background: var(--team); 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            margin-top: 15px; 
+            cursor: pointer; 
+            text-transform: uppercase;
+            font-size: 1rem;
+            letter-spacing: 1px;
+        }
+        button:active { filter: brightness(1.2); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="display-nome">IDENTIFICAZIONE...</div>
+        <div class="slot-indicator" id="display-slot">CANALE: --</div>
+    </div>
+
+    <div id="messaggio-regia"></div>
+    
+    <div id="lista-indizi">
+        </div>
+
+    <div class="accusa-box">
+        <h3 style="font-family:'Special Elite'; margin-top:0; border-bottom:1px solid #888; padding-bottom:5px;">RAPPORTO INVESTIGATIVO</h3>
+        <textarea id="accusa-testo" placeholder="Inserite qui le vostre conclusioni, il colpevole e il movente..."></textarea>
+        <button onclick="inviaAccusa()">TRASMETTI ALLA REGIA</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_q3Yt00_mi_5-yRzfNa1j6-d5QQ6dyiM",
+            authDomain: "crimeengine2026-565ef.firebaseapp.com",
+            databaseURL: "https://crimeengine2026-565ef-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "crimeengine2026-565ef",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Identificazione Slot dall'URL (?slot=A o ?slot=B)
+        const urlParams = new URLSearchParams(window.location.search);
+        const mioSlot = urlParams.get('slot') || 'A'; 
+        document.body.className = 'team-' + mioSlot;
+        document.getElementById('display-slot').innerText = "CANALE OPERATIVO: SLOT " + mioSlot;
+
+        let nomeSquadra = "";
+        let sessioneAttiva = false;
+
+        // --- GESTIONE AGGRESSIVA NOME SQUADRA ---
+        const refNome = db.ref('nomi_squadre/' + mioSlot);
+
+        refNome.on('value', snap => {
+            const nomePresente = snap.val();
+
+            if (!nomePresente) {
+                // Se il nome non c'è (dopo un Reset), svuota la lista e chiedilo
+                document.getElementById('lista-indizi').innerHTML = "";
+                document.getElementById('display-nome').innerText = "ATTESA...";
+                sessioneAttiva = false;
+
+                let nuovoNome = prompt("BENVENUTI. Identificate la vostra SQUADRA (Slot " + mioSlot + "):");
+                if (!nuovoNome || nuovoNome.trim() === "") nuovoNome = "SQUADRA " + mioSlot;
+                
+                refNome.set(nuovoNome);
+            } else {
+                // Se il nome c'è, sblocca l'interfaccia
+                nomeSquadra = nomePresente;
+                document.getElementById('display-nome').innerText = nomeSquadra;
+                
+                if (!sessioneAttiva) {
+                    avviaProtocolloRicezione();
+                    sessioneAttiva = true;
+                }
+            }
+        });
+
+        function avviaProtocolloRicezione() {
+            const canale = (mioSlot === 'A') ? 'giovani' : 'vecchi';
+            
+            // 1. Ascolta l'arrivo degli indizi
+            db.ref('partita/' + canale + '/indizi').on('child_added', snap => {
+                const d = snap.val();
+                let htmlMedia = '';
+
+                // Supporto per i vari tipi di file definiti nel setup
+                if (d.type === 'img') {
+                    htmlMedia = `<img src="${d.url}">`;
+                } else if (d.type === 'audio') {
+                    htmlMedia = `
+                        <div style="text-align:center; padding:15px; background:#f9f9f9; border:1px solid #ddd;">
+                            <span style="font-size:2rem;">🔊</span><br>
+                            <strong>INTERCETTAZIONE AUDIO</strong>
+                            <audio controls style="width:100%; margin-top:15px;"><source src="${d.url}"></audio>
+                        </div>`;
+                } else if (d.type === 'video') {
+                    htmlMedia = `<video controls style="width:100%"><source src="${d.url}"></video>`;
+                } else if (d.type === 'text') {
+                    htmlMedia = `<div class="text-box">${d.url}</div>`;
+                }
+
+                const template = `
+                    <div class="indizio-card">
+                        <div class="media-box">${htmlMedia}</div>
+                        <div class="titolo-indizio">PROVA # ${d.tit || d.id}</div>
+                    </div>`;
+
+                document.getElementById('lista-indizi').insertAdjacentHTML('afterbegin', template);
+                
+                // Suono notifica
+                try { new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3').play(); } catch(e){}
+            });
+
+            // 2. Ascolta comunicazioni flash dalla regia
+            db.ref('partita/' + canale + '/messaggio').on('value', snap => {
+                const m = snap.val();
+                if (m && m.trim() !== "") {
+                    const box = document.getElementById('messaggio-regia');
+                    box.innerHTML = `<strong>MESSAGGIO DALLA REGIA:</strong><br>${m}`;
+                    box.style.display = 'block';
+                    // Scompare dopo 20 secondi per non intasare lo schermo
+                    setTimeout(() => { box.style.display = 'none'; }, 20000);
+                }
+            });
+        }
+
+        // 3. Invio Rapporto / Accusa
+        function inviaAccusa() {
+            const testo = document.getElementById('accusa-testo').value.trim();
+            if (!testo) return alert("Inserisci un testo prima di inviare!");
+            
+            const canaleAccusa = (mioSlot === 'A') ? 'giovani' : 'vecchi';
+            
+            db.ref('partita/accuse/' + canaleAccusa).set({
+                nomeSquadra: nomeSquadra,
+                testo: testo,
+                ora: new Date().toLocaleTimeString()
+            }).then(() => {
+                alert("Rapporto trasmesso alla Centrale. Restate in attesa.");
+                document.getElementById('accusa-testo').value = "";
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRIME ENGINE MASTER v6.5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0d0d0f; --panel: #1a1a1e; --accent: #ff3e3e; --giovani: #4ade80; --vecchi: #3b82f6; --warning: #ff9800; --text: #e0e0e0; --border: #333; }
+        body { font-family: 'Fira Code', monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .navbar { background: #111; padding: 12px 20px; display: flex; gap: 20px; border-bottom: 2px solid var(--border); align-items: center; justify-content: space-between; }
+        .nav-btn { padding: 10px 18px; cursor: pointer; border: 1px solid var(--border); background: #222; color: #999; font-weight: bold; border-radius: 4px; }
+        .nav-btn.active { background: var(--accent) !important; color: white !important; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        #sidebar { width: 340px; background: var(--panel); border-right: 2px solid var(--border); padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+        #view-area { flex: 1; padding: 30px; overflow-y: auto; background: #121214; }
+        .setup-card { background: #222; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px; }
+        #drop-zone { border: 2px dashed var(--warning); padding: 20px; text-align: center; cursor: pointer; background: #111; margin-bottom: 15px; }
+        input, select, textarea { background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        .cat-header { color: var(--warning); border-left: 4px solid var(--warning); padding-left: 15px; margin-top: 30px; margin-bottom: 15px; text-transform: uppercase; font-weight: bold; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
+        .clue-card { background: #25252b; border: 1px solid var(--border); padding: 15px; border-radius: 6px; }
+        .btn-action { padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7rem; margin-top: 10px; }
+        .btn-g { background: var(--giovani); color: #000; width: 48%; }
+        .btn-v { background: var(--vecchi); color: #000; width: 48%; }
+        .archive-table { width: 100%; border-collapse: collapse; background: #111; font-size: 0.85rem; }
+        .archive-table th, .archive-table td { border: 1px solid #333; padding: 12px; text-align: left; }
+        .archive-table th { color: var(--warning); background: #000; }
+        .btn-del { color: #ff3e3e; background: none; border: 1px solid #ff3e3e; padding: 4px 8px; cursor: pointer; border-radius: 3px; }
+        .btn-del:hover { background: #ff3e3e; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <div style="font-weight: bold; color: var(--accent);">CRIME ENGINE MASTER</div>
+        <div>
+            <button id="nav-op" class="nav-btn active" onclick="switchView('op')">DASHBOARD LIVE</button>
+            <button id="nav-br" class="nav-btn" onclick="switchView('br')">SETUP INDIZI</button>
+        </div>
+        <button onclick="clearArchive()" style="background:none; border:1px solid #555; color:#888; font-size:10px; cursor:pointer;">PULISCI ARCHIVIO COMPLETO</button>
+    </div>
+
+    <div class="main-container">
+        <div id="sidebar">
+            <h4>COMANDI RAPIDI</h4>
+            <input type="text" id="msg-field" placeholder="Invia testo...">
+            <div style="display:flex; gap:5px; margin-bottom:20px;">
+                <button class="btn-action btn-g" onclick="sendMsg('giovani')">GIOVANI</button>
+                <button class="btn-action btn-v" onclick="sendMsg('vecchi')">VECCHI</button>
+            </div>
+            <div style="flex:1"></div>
+            <button onclick="masterReset()" style="background:var(--accent); color:white; border:none; padding:15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;">☢ RESET PARTITA</button>
+        </div>
+
+        <div id="view-area">
+            <div id="view-op">
+                <h2>DASHBOARD LIVE</h2>
+                <div id="operational-grid"></div>
+                <hr style="border:1px solid #333; margin:40px 0;">
+                <h3>ACCUSE RICEVUTE</h3>
+                <div id="accusation-monitor"></div>
+            </div>
+
+            <div id="view-br" style="display:none;">
+                <h2>NUOVA PROVA</h2>
+                <div class="setup-card">
+                    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+                        <span id="drop-text">📁 CLICCA PER CARICARE IMMAGINE/AUDIO/VIDEO</span>
+                        <input type="file" id="file-input" hidden>
+                    </div>
+                    <input type="text" id="f-id" placeholder="ID UNICO (es: dna_test)">
+                    <select id="f-type" onchange="toggleType()">
+                        <option value="img">IMMAGINE</option>
+                        <option value="audio">AUDIO (MP3)</option>
+                        <option value="video">VIDEO (MP4)</option>
+                        <option value="text">TESTO SCRITTO</option>
+                    </select>
+                    <input type="text" id="f-cat" placeholder="CATEGORIA (es: SOSPETTI)">
+                    <input type="text" id="f-tit" placeholder="TITOLO">
+                    <input type="text" id="f-url" placeholder="URL o CODICE FILE">
+                    <textarea id="f-text-content" style="display:none; height:100px;" placeholder="Scrivi qui..."></textarea>
+                    <button onclick="saveClue()" style="width:100%; padding:15px; background:var(--giovani); color:#000; font-weight:bold; border:none; cursor:pointer;">💾 SALVA NELL'ARCHIVIO</button>
+                </div>
+
+                <h3>ARCHIVIO DATI</h3>
+                <table class="archive-table">
+                    <thead><tr><th>TITOLO</th><th>CATEGORIA</th><th>AZIONI</th></tr></thead>
+                    <tbody id="archive-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_q3Yt00_mi_5-yRzfNa1j6-d5QQ6dyiM",
+            authDomain: "crimeengine2026-565ef.firebaseapp.com",
+            databaseURL: "https://crimeengine2026-565ef-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "crimeengine2026-565ef",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function switchView(v) {
+            document.getElementById('view-op').style.display = v === 'op' ? 'block' : 'none';
+            document.getElementById('view-br').style.display = v === 'br' ? 'block' : 'none';
+            document.getElementById('nav-op').classList.toggle('active', v === 'op');
+            document.getElementById('nav-br').classList.toggle('active', v === 'br');
+        }
+
+        function toggleType() {
+            const isText = document.getElementById('f-type').value === 'text';
+            document.getElementById('f-url').style.display = isText ? 'none' : 'block';
+            document.getElementById('f-text-content').style.display = isText ? 'block' : 'none';
+            document.getElementById('drop-zone').style.display = isText ? 'none' : 'block';
+        }
+
+        document.getElementById('file-input').addEventListener('change', e => {
+            const reader = new FileReader();
+            reader.readAsDataURL(e.target.files[0]);
+            reader.onload = () => { document.getElementById('f-url').value = reader.result; document.getElementById('drop-text').innerText = "✅ FILE CARICATO"; };
+        });
+
+        function saveClue() {
+            const id = document.getElementById('f-id').value.trim().replace(/\s/g, '_');
+            const type = document.getElementById('f-type').value;
+            const url = (type === 'text') ? document.getElementById('f-text-content').value : document.getElementById('f-url').value;
+            const cat = document.getElementById('f-cat').value.trim() || "VARIE";
+            const tit = document.getElementById('f-tit').value.trim() || id;
+
+            if(!id || !url) return alert("Inserisci ID e Contenuto!");
+            
+            db.ref('configurazioni/fonti/' + id).set({ id, type, cat, tit, url })
+            .then(() => { alert("Salvato!"); location.reload(); });
+        }
+
+        // --- SISTEMA DI VISUALIZZAZIONE ---
+        db.ref('configurazioni/fonti').on('value', snap => {
+            const grid = document.getElementById('operational-grid');
+            const arch = document.getElementById('archive-body');
+            grid.innerHTML = ""; arch.innerHTML = "";
+            const data = snap.val(); if(!data) return;
+
+            Object.keys(data).forEach(key => {
+                const c = data[key];
+                // Se i dati sono corretti, mostrali nell'archivio
+                arch.innerHTML += `<tr>
+                    <td>${c.tit || "ERRORE DATO"}</td>
+                    <td>${c.cat || "NESSUNA"}</td>
+                    <td><button class="btn-del" onclick="db.ref('configurazioni/fonti/${key}').remove()">ELIMINA</button></td>
+                </tr>`;
+
+                // Mostra nella Dashboard solo se ha titolo e categoria validi
+                if(c.tit && c.cat) {
+                    const safeCat = c.cat.replace(/\s/g, '_');
+                    if(!document.getElementById('dash-'+safeCat)) {
+                        grid.innerHTML += `<div class="cat-header">${c.cat}</div><div class="grid-cards" id="dash-${safeCat}"></div>`;
+                    }
+                    document.getElementById('dash-'+safeCat).innerHTML += `
+                        <div class="clue-card" id="card-${key}">
+                            <div style="font-weight:bold; color:var(--warning);">${c.tit}</div>
+                            <div style="font-size:0.7rem; opacity:0.6; margin-bottom:10px;">${c.type.toUpperCase()}</div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-action btn-g" onclick="sendTo('${key}','giovani')">GIOVANI</button>
+                                <button class="btn-action btn-v" onclick="sendTo('${key}','vecchi')">VECCHI</button>
+                            </div>
+                        </div>`;
+                }
+            });
+        });
+
+        function clearArchive() {
+            if(confirm("Vuoi ELIMINARE TUTTO l'archivio fonti?")) db.ref('configurazioni/fonti').remove();
+        }
+
+        function sendTo(id, squad) {
+            db.ref('configurazioni/fonti/'+id).once('value', snap => {
+                db.ref('partita/'+squad+'/indizi/'+id).set(snap.val());
+                document.getElementById('card-'+id).style.border = "1px solid var(--warning)";
+            });
+        }
+
+        function sendMsg(squad) {
+            const f = document.getElementById('msg-field');
+            db.ref('partita/'+squad+'/messaggio').set(f.value);
+            f.value = "";
+        }
+
+        function masterReset() {
+            if(confirm("RESET PARTITA LIVE?")) {
+                db.ref('partita').remove();
+                db.ref('nomi_squadre').remove().then(() => location.reload());
+            }
+        }
+
+        db.ref('partita/accuse').on('value', snap => {
+            const m = document.getElementById('accusation-monitor');
+            m.innerHTML = ""; if(!snap.val()) return;
+            Object.values(snap.val()).forEach(a => {
+                m.innerHTML += `<div style="background:#000; padding:10px; border-left:3px solid red; margin-bottom:5px;"><strong>${a.nomeSquadra}</strong>: ${a.testo}</div>`;
+            });
+        });
+    </script>
+</body>
+</html>
