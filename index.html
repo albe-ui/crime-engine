@@ -96,6 +96,71 @@
         .quiz-opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
         select#quiz-selector { width: 100%; padding: 10px; font-family: 'Courier New', monospace; border-radius: 8px; border: 1px solid var(--warning); background: rgba(255,255,255,0.8); font-weight: bold; margin-bottom: 10px; outline: none; }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Schermi piccoli (smartphone, max 480px) */
+        @media (max-width: 480px) {
+            body { padding: 8px; gap: 8px; }
+            #display-nome { font-size: 1rem; }
+            .header { padding: 10px; border-radius: 16px; }
+            #lista-indizi { padding: 10px 8px; gap: 14px; border-radius: 16px; }
+            .folder-icon { width: 52px; }
+            .folder-wrapper { min-width: 72px; }
+            .folder-label { font-size: 0.68rem; max-width: 80px; }
+            .clue-card { padding: 14px; border-radius: 14px; }
+            .text-box { font-size: 0.82rem; padding: 12px; }
+            textarea { height: 58px; font-size: 0.82rem; }
+            button.action-btn { padding: 12px; font-size: 0.78rem; }
+            .quiz-opt-btn { font-size: 0.78rem !important; padding: 10px 12px !important; }
+            .action-box-container { padding: 12px; border-radius: 20px; }
+            #player-quiz-domanda { font-size: 0.82rem; }
+        }
+
+        /* Schermi medi (tablet, 481px–768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            body { padding: 12px; gap: 10px; }
+            #display-nome { font-size: 1.1rem; }
+            .folder-icon { width: 60px; }
+            .folder-wrapper { min-width: 82px; }
+            .clue-card { padding: 16px; }
+            textarea { height: 62px; }
+        }
+
+        /* Schermi grandi (desktop/tablet orizzontale, 769px+) */
+        @media (min-width: 769px) {
+            body { 
+                padding: 20px; 
+                gap: 16px; 
+                max-width: 900px; 
+                margin: 0 auto; 
+            }
+            #display-nome { font-size: 1.4rem; letter-spacing: 2px; }
+            .header { padding: 18px 24px; }
+            #lista-indizi { padding: 18px 20px; gap: 28px; }
+            .folder-icon { width: 80px; }
+            .folder-wrapper { min-width: 110px; }
+            .folder-label { font-size: 0.82rem; max-width: 120px; }
+            .clue-card { padding: 24px; border-radius: 20px; }
+            .text-box { font-size: 1rem; padding: 18px; }
+            textarea { height: 80px; font-size: 1rem; }
+            button.action-btn { font-size: 0.92rem; padding: 16px; }
+            .quiz-opt-btn { font-size: 0.92rem !important; padding: 14px 18px !important; }
+            .action-box-container { padding: 20px; border-radius: 28px; }
+            #player-quiz-domanda { font-size: 1rem; }
+        }
+
+        /* Landscape su smartphone piccoli */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body { gap: 6px; padding: 6px; }
+            .header { padding: 6px 12px; }
+            #display-nome { font-size: 0.9rem; }
+            #lista-indizi { padding: 6px 10px; }
+            .folder-icon { width: 44px; }
+            textarea { height: 48px; }
+            button.action-btn { padding: 9px; font-size: 0.75rem; margin-top: 6px; }
+            .action-box-container { padding: 8px 12px; }
+        }
     </style>
 </head>
 <body>
