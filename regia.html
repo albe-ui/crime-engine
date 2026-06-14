@@ -2,92 +2,139 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRIME ENGINE MASTER v6.5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MASTER CONTROL v8.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --bg: #0d0d0f; --panel: #1a1a1e; --accent: #ff3e3e; --giovani: #4ade80; --vecchi: #3b82f6; --warning: #ff9800; --text: #e0e0e0; --border: #333; }
         body { font-family: 'Fira Code', monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .navbar { background: #111; padding: 12px 20px; display: flex; gap: 20px; border-bottom: 2px solid var(--border); align-items: center; justify-content: space-between; }
-        .nav-btn { padding: 10px 18px; cursor: pointer; border: 1px solid var(--border); background: #222; color: #999; font-weight: bold; border-radius: 4px; }
-        .nav-btn.active { background: var(--accent) !important; color: white !important; }
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        #sidebar { width: 340px; background: var(--panel); border-right: 2px solid var(--border); padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
-        #view-area { flex: 1; padding: 30px; overflow-y: auto; background: #121214; }
-        .setup-card { background: #222; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px; }
-        #drop-zone { border: 2px dashed var(--warning); padding: 20px; text-align: center; cursor: pointer; background: #111; margin-bottom: 15px; }
-        input, select, textarea { background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
-        .cat-header { color: var(--warning); border-left: 4px solid var(--warning); padding-left: 15px; margin-top: 30px; margin-bottom: 15px; text-transform: uppercase; font-weight: bold; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
-        .clue-card { background: #25252b; border: 1px solid var(--border); padding: 15px; border-radius: 6px; }
-        .btn-action { padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.7rem; margin-top: 10px; }
-        .btn-g { background: var(--giovani); color: #000; width: 48%; }
-        .btn-v { background: var(--vecchi); color: #000; width: 48%; }
-        .archive-table { width: 100%; border-collapse: collapse; background: #111; font-size: 0.85rem; }
-        .archive-table th, .archive-table td { border: 1px solid #333; padding: 12px; text-align: left; }
-        .archive-table th { color: var(--warning); background: #000; }
-        .btn-del { color: #ff3e3e; background: none; border: 1px solid #ff3e3e; padding: 4px 8px; cursor: pointer; border-radius: 3px; }
-        .btn-del:hover { background: #ff3e3e; color: #fff; }
+        
+        .navbar { background: #111; padding: 10px; display: flex; justify-content: space-around; border-bottom: 2px solid var(--border); z-index: 10; }
+        .nav-btn { padding: 12px; cursor: pointer; border: 1px solid var(--border); background: #222; color: #999; border-radius: 8px; flex: 1; margin: 0 5px; font-size: 0.7rem; text-align: center; font-weight: bold; }
+        .nav-btn.active { background: var(--accent) !important; color: white !important; border-color: var(--accent); }
+
+        .main-container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; }
+
+        /* Sistema a Cartelle (Accordion) */
+        .folder { background: #16161a; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .folder-header { padding: 15px; background: #222; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); }
+        .folder-title { font-weight: bold; color: var(--warning); display: flex; align-items: center; gap: 10px; }
+        .folder-content { padding: 10px; display: none; background: #1a1a1e; }
+        .folder.open .folder-content { display: block; }
+
+        .clue-card { background: #25252b; border: 1px solid var(--border); padding: 10px; border-radius: 8px; margin-bottom: 10px; position: relative; transition: 0.3s; }
+        .clue-card.read-by-A { border-left: 5px solid var(--giovani); }
+        .clue-card.read-by-B { border-right: 5px solid var(--vecchi); }
+        
+        .read-badge { position: absolute; top: 5px; right: 5px; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; display: none; }
+        .clue-card.read-by-A .badge-a { display: block; background: var(--giovani); color: black; }
+        .clue-card.read-by-B .badge-b { display: block; background: var(--vecchi); color: black; top: 25px; }
+
+        .btn-group { display: flex; gap: 8px; margin-top: 10px; }
+        .action-btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.7rem; text-transform: uppercase; }
+        .btn-g { background: var(--giovani); color: #000; }
+        .btn-v { background: var(--vecchi); color: #000; }
+        
+        .sent-mark { position: absolute; top: 5px; left: 5px; background: var(--warning); color: black; font-size: 0.5rem; padding: 2px; border-radius: 2px; display: none; }
+        .is-sent .sent-mark { display: block; }
+
+        #accusa-alert { position: fixed; bottom: 80px; left: 10px; right: 10px; background: var(--accent); color: white; padding: 15px; border-radius: 10px; display: none; z-index: 100; font-weight: bold; text-align: center; box-shadow: 0 5px 20px rgba(255,0,0,0.4); }
+        
+        .quiz-box input, .quiz-box select, .quiz-box textarea { width: 100%; background: #000; color: white; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-family: inherit; }
+        .quiz-box label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.75rem; }
+        .log-entry { background: #111; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid var(--border); font-size: 0.8rem; }
+        
+        .active-quiz-item { background: #222; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid var(--warning); }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div style="font-weight: bold; color: var(--accent);">CRIME ENGINE MASTER</div>
-        <div>
-            <button id="nav-op" class="nav-btn active" onclick="switchView('op')">DASHBOARD LIVE</button>
-            <button id="nav-br" class="nav-btn" onclick="switchView('br')">SETUP INDIZI</button>
-        </div>
-        <button onclick="clearArchive()" style="background:none; border:1px solid #555; color:#888; font-size:10px; cursor:pointer;">PULISCI ARCHIVIO COMPLETO</button>
+        <div class="nav-btn active" id="n-op" onclick="switchView('op')">DASHBOARD</div>
+        <div class="nav-btn" id="n-br" onclick="switchView('br')">ARCHIVIO</div>
+        <div class="nav-btn" id="n-quiz" onclick="switchView('quiz')">QUIZ</div>
+        <div class="nav-btn" id="n-msg" onclick="switchView('msg')">COMANDI</div>
     </div>
 
     <div class="main-container">
-        <div id="sidebar">
-            <h4>COMANDI RAPIDI</h4>
-            <input type="text" id="msg-field" placeholder="Invia testo...">
-            <div style="display:flex; gap:5px; margin-bottom:20px;">
-                <button class="btn-action btn-g" onclick="sendMsg('giovani')">GIOVANI</button>
-                <button class="btn-action btn-v" onclick="sendMsg('vecchi')">VECCHI</button>
-            </div>
-            <div style="flex:1"></div>
-            <button onclick="masterReset()" style="background:var(--accent); color:white; border:none; padding:15px; font-weight:bold; cursor:pointer; border-radius:4px; width:100%;">☢ RESET PARTITA</button>
+        <!-- VISTA OPERATIVA / DASHBOARD -->
+        <div id="view-op">
+            <div id="folder-list"></div>
+            <div id="accusa-alert" onclick="this.style.display='none'">🔔 NUOVA ACCUSA! TOCCA PER VEDERE</div>
+            <div id="accusation-monitor" style="margin-top:40px;"></div>
         </div>
 
-        <div id="view-area">
-            <div id="view-op">
-                <h2>DASHBOARD LIVE</h2>
-                <div id="operational-grid"></div>
-                <hr style="border:1px solid #333; margin:40px 0;">
-                <h3>ACCUSE RICEVUTE</h3>
-                <div id="accusation-monitor"></div>
+        <!-- VISTA ARCHIVIO INDIZI -->
+        <div id="view-br" style="display:none;">
+            <button onclick="toggleSetup()" style="width:100%; padding:15px; background:var(--warning); color:black; border:none; margin-bottom:15px; border-radius:8px; font-weight:bold;">+ NUOVO INDIZIO</button>
+            <div id="setup-form" style="display:none; background:#222; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <input type="text" id="f-tit" placeholder="Titolo Indizio">
+                <input type="text" id="f-cat" placeholder="Categoria (es: Sospetti)">
+                <select id="f-type" onchange="document.getElementById('f-text').style.display = this.value==='text'?'block':'none'">
+                    <option value="img">Immagine (URL o Base64)</option>
+                    <option value="text">Testo / Documento</option>
+                    <option value="audio">Audio</option>
+                </select>
+                <textarea id="f-text" style="display:none; height:100px;" placeholder="Contenuto testo..."></textarea>
+                <input type="text" id="f-url" placeholder="URL Media (opzionale se carichi file)">
+                <input type="file" id="file-helper" onchange="uploadLocal(this)" style="margin-bottom:10px;">
+                <button onclick="saveClue()" style="background:var(--giovani); color:black; width:100%; padding:15px; border:none; border-radius:8px;">SALVA NELL'ARCHIVIO</button>
+            </div>
+            <input type="text" id="search" placeholder="🔍 Cerca nell'archivio..." onkeyup="filterArchive()" style="background:#000; border:1px solid #444; color:white; padding:12px; width:100%; border-radius:8px; box-sizing:border-box;">
+            <div id="archive-display" style="margin-top:15px;"></div>
+        </div>
+
+        <!-- VISTA GESTIONE QUIZ -->
+        <div id="view-quiz" style="display:none;">
+            <h3 style="color:var(--warning); margin-top:0;">CREA NUOVO QUIZ</h3>
+            <div class="quiz-box" style="background: var(--panel); padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
+                <label style="color:var(--text); font-size:0.8rem;">TESTO DELLA DOMANDA / SCENARIO:</label>
+                <textarea id="q-testo" placeholder="Es: Il sospettato sta fuggendo verso i moli. Come procedete?" style="height:70px; resize:none; margin-bottom:12px;"></textarea>
+                
+                <label style="color:var(--giovani);">OPZIONE A:</label>
+                <input type="text" id="q-optA" placeholder="Inserisci opzione A" style="margin-bottom:10px;">
+                <label style="color:var(--giovani);">OPZIONE B:</label>
+                <input type="text" id="q-optB" placeholder="Inserisci opzione B" style="margin-bottom:10px;">
+                <label style="color:var(--giovani);">OPZIONE C:</label>
+                <input type="text" id="q-optC" placeholder="Inserisci opzione C" style="margin-bottom:10px;">
+                <label style="color:var(--giovani);">OPZIONE D:</label>
+                <input type="text" id="q-optD" placeholder="Inserisci opzione D" style="margin-bottom:12px;">
+                
+                <label style="color:var(--warning); font-size:0.8rem;">CHIAVE DI VOLTA (RISPOSTA CORRETTA):</label>
+                <select id="q-corretta" style="margin-bottom:15px;">
+                    <option value="A">OPZIONE A</option><option value="B">OPZIONE B</option>
+                    <option value="C">OPZIONE C</option><option value="D">OPZIONE D</option>
+                </select>
+                
+                <button onclick="pubblicaDomanda()" style="width:100%; padding:14px; background:var(--accent); color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">AGGIUNGI AI TERMINALI</button>
             </div>
 
-            <div id="view-br" style="display:none;">
-                <h2>NUOVA PROVA</h2>
-                <div class="setup-card">
-                    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-                        <span id="drop-text">📁 CLICCA PER CARICARE IMMAGINE/AUDIO/VIDEO</span>
-                        <input type="file" id="file-input" hidden>
-                    </div>
-                    <input type="text" id="f-id" placeholder="ID UNICO (es: dna_test)">
-                    <select id="f-type" onchange="toggleType()">
-                        <option value="img">IMMAGINE</option>
-                        <option value="audio">AUDIO (MP3)</option>
-                        <option value="video">VIDEO (MP4)</option>
-                        <option value="text">TESTO SCRITTO</option>
-                    </select>
-                    <input type="text" id="f-cat" placeholder="CATEGORIA (es: SOSPETTI)">
-                    <input type="text" id="f-tit" placeholder="TITOLO">
-                    <input type="text" id="f-url" placeholder="URL o CODICE FILE">
-                    <textarea id="f-text-content" style="display:none; height:100px;" placeholder="Scrivi qui..."></textarea>
-                    <button onclick="saveClue()" style="width:100%; padding:15px; background:var(--giovani); color:#000; font-weight:bold; border:none; cursor:pointer;">💾 SALVA NELL'ARCHIVIO</button>
-                </div>
+            <!-- GESTIONE QUIZ ATTIVI -->
+            <h3 style="color:var(--text); margin-top:25px;">QUIZ ATTUALMENTE IN CORSO</h3>
+            <div id="lista-quiz-attivi" style="background:var(--panel); padding:15px; border-radius:8px; border:1px solid var(--border); margin-bottom:20px;">
+                <div style="color:#777; font-size:0.8rem; font-style:italic;" id="no-quiz-label">Nessun quiz attivo.</div>
+            </div>
 
-                <h3>ARCHIVIO DATI</h3>
-                <table class="archive-table">
-                    <thead><tr><th>TITOLO</th><th>CATEGORIA</th><th>AZIONI</th></tr></thead>
-                    <tbody id="archive-body"></tbody>
-                </table>
+            <!-- MONITORAGGIO RISPOSTE IN TEMPO REALE -->
+            <h3 style="color:var(--text); margin-top:25px;">MONITOR RISPOSTE SQUADRE</h3>
+            <div style="background:var(--panel); padding:15px; border-radius:8px; border:1px solid var(--border);">
+                <div id="quiz-log-container" style="max-height:300px; overflow-y:auto; margin-bottom:15px;">
+                    <div style="color:#777; font-style:italic; font-size:0.8rem;" id="quiz-empty-log">Nessuna risposta ricevuta.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA COMUNICAZIONI RAPIDE -->
+        <div id="view-msg" style="display:none;">
+            <h3>COMUNICAZIONI RAPIDE</h3>
+            <textarea id="msg-field" placeholder="Invia un suggerimento o un ordine..." style="height:120px; width:100%; background:#000; color:white; padding:10px; font-family:inherit; resize:none; border:1px solid var(--border); border-radius:6px; box-sizing:border-box;"></textarea>
+            <div class="btn-group">
+                <button class="action-btn btn-g" onclick="sendMsg('giovani')">Invia a A</button>
+                <button class="action-btn btn-v" onclick="sendMsg('vecchi')">Invia a B</button>
+            </div>
+            <div style="margin-top:100px; border:1px solid red; padding:15px; border-radius:10px;">
+                <h4 style="color:red; margin:0;">ZONA PERICOLOSA</h4>
+                <button onclick="masterReset()" style="background:red; color:white; border:none; padding:15px; width:100%; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">RESET TOTALE PARTITA</button>
             </div>
         </div>
     </div>
@@ -104,105 +151,236 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let allClues = {};
+        const beep = new Audio('https://www.soundjay.com/buttons/sounds/beep-07.mp3');
+
+        // Navigazione
         function switchView(v) {
-            document.getElementById('view-op').style.display = v === 'op' ? 'block' : 'none';
-            document.getElementById('view-br').style.display = v === 'br' ? 'block' : 'none';
-            document.getElementById('nav-op').classList.toggle('active', v === 'op');
-            document.getElementById('nav-br').classList.toggle('active', v === 'br');
+            document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
+            document.getElementById('view-' + v).style.display = 'block';
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('n-' + v).classList.add('active');
         }
 
-        function toggleType() {
-            const isText = document.getElementById('f-type').value === 'text';
-            document.getElementById('f-url').style.display = isText ? 'none' : 'block';
-            document.getElementById('f-text-content').style.display = isText ? 'block' : 'none';
-            document.getElementById('drop-zone').style.display = isText ? 'none' : 'block';
-        }
-
-        document.getElementById('file-input').addEventListener('change', e => {
+        // Funzioni Base (Caricamento, Invio, Reset)
+        function uploadLocal(input) {
             const reader = new FileReader();
-            reader.readAsDataURL(e.target.files[0]);
-            reader.onload = () => { document.getElementById('f-url').value = reader.result; document.getElementById('drop-text').innerText = "✅ FILE CARICATO"; };
-        });
+            reader.onload = e => document.getElementById('f-url').value = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
 
         function saveClue() {
-            const id = document.getElementById('f-id').value.trim().replace(/\s/g, '_');
-            const type = document.getElementById('f-type').value;
-            const url = (type === 'text') ? document.getElementById('f-text-content').value : document.getElementById('f-url').value;
-            const cat = document.getElementById('f-cat').value.trim() || "VARIE";
-            const tit = document.getElementById('f-tit').value.trim() || id;
-
-            if(!id || !url) return alert("Inserisci ID e Contenuto!");
-            
-            db.ref('configurazioni/fonti/' + id).set({ id, type, cat, tit, url })
-            .then(() => { alert("Salvato!"); location.reload(); });
+            const id = "c_" + Date.now();
+            const data = {
+                id: id,
+                tit: document.getElementById('f-tit').value,
+                cat: document.getElementById('f-cat').value || "Senza Categoria",
+                type: document.getElementById('f-type').value,
+                url: document.getElementById('f-type').value === 'text' ? document.getElementById('f-text').value : document.getElementById('f-url').value
+            };
+            db.ref('configurazioni/fonti/' + id).set(data).then(() => {
+                alert("Salvato!");
+                document.getElementById('setup-form').style.display='none';
+            });
         }
 
-        // --- SISTEMA DI VISUALIZZAZIONE ---
         db.ref('configurazioni/fonti').on('value', snap => {
-            const grid = document.getElementById('operational-grid');
-            const arch = document.getElementById('archive-body');
-            grid.innerHTML = ""; arch.innerHTML = "";
-            const data = snap.val(); if(!data) return;
-
-            Object.keys(data).forEach(key => {
-                const c = data[key];
-                // Se i dati sono corretti, mostrali nell'archivio
-                arch.innerHTML += `<tr>
-                    <td>${c.tit || "ERRORE DATO"}</td>
-                    <td>${c.cat || "NESSUNA"}</td>
-                    <td><button class="btn-del" onclick="db.ref('configurazioni/fonti/${key}').remove()">ELIMINA</button></td>
-                </tr>`;
-
-                // Mostra nella Dashboard solo se ha titolo e categoria validi
-                if(c.tit && c.cat) {
-                    const safeCat = c.cat.replace(/\s/g, '_');
-                    if(!document.getElementById('dash-'+safeCat)) {
-                        grid.innerHTML += `<div class="cat-header">${c.cat}</div><div class="grid-cards" id="dash-${safeCat}"></div>`;
-                    }
-                    document.getElementById('dash-'+safeCat).innerHTML += `
-                        <div class="clue-card" id="card-${key}">
-                            <div style="font-weight:bold; color:var(--warning);">${c.tit}</div>
-                            <div style="font-size:0.7rem; opacity:0.6; margin-bottom:10px;">${c.type.toUpperCase()}</div>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn-action btn-g" onclick="sendTo('${key}','giovani')">GIOVANI</button>
-                                <button class="btn-action btn-v" onclick="sendTo('${key}','vecchi')">VECCHI</button>
-                            </div>
-                        </div>`;
-                }
-            });
+            allClues = snap.val() || {};
+            renderFolders();
+            renderArchive();
         });
 
-        function clearArchive() {
-            if(confirm("Vuoi ELIMINARE TUTTO l'archivio fonti?")) db.ref('configurazioni/fonti').remove();
+        function renderFolders() {
+            const container = document.getElementById('folder-list');
+            container.innerHTML = "";
+            const cats = [...new Set(Object.values(allClues).map(c => c.cat))];
+
+            cats.forEach(cat => {
+                const folderId = cat.replace(/\s/g, '');
+                let html = `<div class="folder" id="f-${folderId}">
+                    <div class="folder-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div class="folder-title">📂 ${cat}</div>
+                        <button class="bulk-btn" onclick="sendBulk('${cat}', event)" style="background:var(--warning); border:none; padding:5px 10px; border-radius:4px; font-size:0.6rem; cursor:pointer;">INVIA TUTTO</button>
+                    </div>
+                    <div class="folder-content">`;
+                
+                Object.values(allClues).filter(c => c.cat === cat).forEach(c => {
+                    html += `
+                        <div class="clue-card" id="dash-${c.id}">
+                            <span class="sent-mark">INVIATO</span>
+                            <span class="read-badge badge-a">LETTO DA A</span>
+                            <span class="read-badge badge-b">LETTO DA B</span>
+                            <div style="font-size:0.8rem; font-weight:bold; margin-bottom:5px;">${c.tit}</div>
+                            <div class="btn-group">
+                                <button class="action-btn btn-g" onclick="sendTo('${c.id}','giovani')">A</button>
+                                <button class="action-btn btn-v" onclick="sendTo('${c.id}','vecchi')">B</button>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML += html + `</div></div>`;
+            });
+            syncSentStatus();
         }
 
-        function sendTo(id, squad) {
-            db.ref('configurazioni/fonti/'+id).once('value', snap => {
-                db.ref('partita/'+squad+'/indizi/'+id).set(snap.val());
-                document.getElementById('card-'+id).style.border = "1px solid var(--warning)";
+        function syncSentStatus() {
+            db.ref('partita').on('value', snap => {
+                const partita = snap.val() || {};
+                document.querySelectorAll('.clue-card').forEach(card => {
+                    const id = card.id.replace('dash-', '');
+                    if ((partita.giovani?.indizi?.[id]) || (partita.vecchi?.indizi?.[id])) card.classList.add('is-sent');
+                    if (partita.giovani?.letti?.[id]) card.classList.add('read-by-A');
+                    if (partita.vecchi?.letti?.[id]) card.classList.add('read-by-B');
+                });
             });
         }
 
-        function sendMsg(squad) {
-            const f = document.getElementById('msg-field');
-            db.ref('partita/'+squad+'/messaggio').set(f.value);
-            f.value = "";
-        }
+        function sendTo(id, squad) { db.ref('partita/'+squad+'/indizi/'+id).set(allClues[id]); }
 
-        function masterReset() {
-            if(confirm("RESET PARTITA LIVE?")) {
-                db.ref('partita').remove();
-                db.ref('nomi_squadre').remove().then(() => location.reload());
+        function sendBulk(cat, event) {
+            event.stopPropagation();
+            if(confirm("Inviare tutta la cartella "+cat+" a entrambe le squadre?")) {
+                Object.values(allClues).filter(c => c.cat === cat).forEach(c => {
+                    db.ref('partita/giovani/indizi/'+c.id).set(c);
+                    db.ref('partita/vecchi/indizi/'+c.id).set(c);
+                });
             }
         }
 
-        db.ref('partita/accuse').on('value', snap => {
-            const m = document.getElementById('accusation-monitor');
-            m.innerHTML = ""; if(!snap.val()) return;
-            Object.values(snap.val()).forEach(a => {
-                m.innerHTML += `<div style="background:#000; padding:10px; border-left:3px solid red; margin-bottom:5px;"><strong>${a.nomeSquadra}</strong>: ${a.testo}</div>`;
+        function sendMsg(squad) {
+            const txt = document.getElementById('msg-field').value.trim();
+            if(!txt) return;
+            db.ref('partita/'+squad+'/messaggio').set(txt).then(() => { alert("Inviato!"); document.getElementById('msg-field').value = ""; });
+        }
+
+        db.ref('partita/accuse').on('child_added', snap => {
+            beep.play();
+            document.getElementById('accusa-alert').style.display = 'block';
+            const a = snap.val();
+            document.getElementById('accusation-monitor').insertAdjacentHTML('afterbegin', `
+                <div style="background:white; color:black; padding:15px; border-radius:8px; margin-bottom:10px; border-left:10px solid var(--accent);">
+                    <strong>${a.nomeSquadra}</strong> - ${a.ora}<br>
+                    <p style="margin:5px 0 0 0; font-size:0.9rem;">${a.testo}</p>
+                </div>
+            `);
+        });
+
+        // ================= LOGICA GESTIONE MULTI-QUIZ =================
+        function pubblicaDomanda() {
+            const t = document.getElementById('q-testo').value.trim();
+            const oA = document.getElementById('q-optA').value.trim();
+            const oB = document.getElementById('q-optB').value.trim();
+            const oC = document.getElementById('q-optC').value.trim();
+            const oD = document.getElementById('q-optD').value.trim();
+            const c = document.getElementById('q-corretta').value;
+
+            if (!t || !oA || !oB || !oC || !oD) { alert("Compila tutti i campi!"); return; }
+
+            const qId = 'quiz_' + Date.now();
+            const quizData = { id: qId, domanda: t, opzioni: { A: oA, B: oB, C: oC, D: oD }, corretta: c, timestamp: Date.now() };
+
+            db.ref('partita/quiz_repository/' + qId).set(quizData).then(() => {
+                alert("Quiz distribuito nei terminali!");
+                // Pulisci i campi
+                document.getElementById('q-testo').value = '';
+                document.getElementById('q-optA').value = ''; document.getElementById('q-optB').value = '';
+                document.getElementById('q-optC').value = ''; document.getElementById('q-optD').value = '';
+            });
+        }
+
+        // Ascolta la lista dei quiz attivi
+        let quizLocali = {};
+        db.ref('partita/quiz_repository').on('value', snap => {
+            quizLocali = snap.val() || {};
+            const listDiv = document.getElementById('lista-quiz-attivi');
+            const noData = document.getElementById('no-quiz-label');
+            
+            if(Object.keys(quizLocali).length === 0) {
+                listDiv.innerHTML = "";
+                listDiv.appendChild(noData);
+                noData.style.display = 'block';
+            } else {
+                noData.style.display = 'none';
+                listDiv.innerHTML = "";
+                Object.values(quizLocali).forEach(q => {
+                    listDiv.innerHTML += `
+                        <div class="active-quiz-item">
+                            <div style="font-size:0.8rem; font-weight:bold; margin-bottom:5px;">${q.domanda}</div>
+                            <button onclick="chiudiSingoloQuiz('${q.id}')" style="background:var(--accent); color:white; border:none; border-radius:4px; padding:5px 10px; font-size:0.7rem; cursor:pointer;">CHIUDI E RIMUOVI</button>
+                        </div>
+                    `;
+                });
+            }
+        });
+
+        function chiudiSingoloQuiz(id) {
+            if(confirm("Rimuovere questo quiz dai terminali operativi?")) {
+                db.ref('partita/quiz_repository/' + id).remove();
+            }
+        }
+
+        // Ascolto log delle risposte
+        db.ref('partita/risposte_quiz').on('value', snap => {
+            const container = document.getElementById('quiz-log-container');
+            const emptyLabel = document.getElementById('quiz-empty-log');
+            const rispostePool = snap.val();
+            
+            if(!rispostePool) {
+                container.innerHTML = "";
+                if(emptyLabel) emptyLabel.style.display = 'block';
+                return;
+            }
+            
+            if(emptyLabel) emptyLabel.style.display = 'none';
+            container.innerHTML = "";
+
+            Object.keys(rispostePool).forEach(quizId => {
+                const domData = quizLocali[quizId]?.domanda || "Domanda Chiusa/Sconosciuta";
+                
+                Object.values(rispostePool[quizId]).forEach(r => {
+                    const isCorrect = r.esito === "CORRETTO";
+                    const borderClr = isCorrect ? 'var(--giovani)' : 'var(--accent)';
+                    container.innerHTML += `
+                        <div class="log-entry" style="border-left-color: ${borderClr}">
+                            <div style="font-size:0.7rem; color:#888; margin-bottom:4px;">Q: ${domData.substring(0,40)}...</div>
+                            <strong>${r.squadra}</strong> [${r.ora}] <br>
+                            Scelta: <span style="font-weight:bold; color:${borderClr}">${r.sceltaEffettuata} (${r.esito})</span>
+                        </div>
+                    `;
+                });
             });
         });
+
+        function masterReset() {
+            if(confirm("☢ SEI SICURO DI VOLER CANCELLARE TUTTI I DATI DI PARTITA?")) {
+                db.ref('partita').remove();
+                db.ref('nomi_squadre').remove();
+                location.reload();
+            }
+        }
+        
+        function toggleSetup() {
+            const s = document.getElementById('setup-form');
+            s.style.display = s.style.display==='none'?'block':'none';
+        }
+
+        function renderArchive() {
+            const div = document.getElementById('archive-display');
+            div.innerHTML = "";
+            Object.values(allClues).forEach(c => {
+                div.innerHTML += `<div style="background:#111; padding:10px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem;">${c.tit} (<span style="color:var(--warning)">${c.cat}</span>)</span>
+                    <button onclick="db.ref('configurazioni/fonti/${c.id}').remove()" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">ELIMINA</button>
+                </div>`;
+            });
+        }
+
+        function filterArchive() {
+            const q = document.getElementById('search').value.toLowerCase();
+            document.querySelectorAll('#archive-display > div').forEach(el => {
+                const txt = el.innerText.toLowerCase();
+                el.style.display = txt.includes(q) ? 'flex' : 'none';
+            });
+        }
     </script>
 </body>
 </html>

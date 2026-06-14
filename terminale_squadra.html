@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINALE SQUADRA OPERATIVA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --team: #444; 
+            --bg: #e5e5d1; 
+            --red-alert: #ff3333; 
+            --warning: #ff9800;
+            --ios-glass: rgba(255, 255, 255, 0.4);
+            --ios-border: rgba(255, 255, 255, 0.25);
+        }
+        body.team-A { --team: #2e7d32; } 
+        body.team-B { --team: #1565c0; }
+        
+        body { 
+            font-family: 'Courier New', monospace; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 10px; 
+            box-sizing: border-box;
+            color: #222; 
+            background-image: url('https://www.transparenttextures.com/patterns/felt.png'); 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            gap: 12px; 
+        }
+
+        .header { 
+            text-align: center; 
+            padding: 14px; 
+            background: var(--ios-glass);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--ios-border);
+            border-radius: 20px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+        }
+        #display-nome { font-family: 'Special Elite', cursive; font-size: 1.2rem; color: var(--team); letter-spacing: 1px; }
+
+        #lista-indizi {
+            display: flex; overflow-x: auto; overflow-y: hidden; padding: 15px 12px; gap: 20px;
+            background: var(--ios-glass); backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--ios-border); border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+            flex-shrink: 0; position: relative; z-index: 5; scrollbar-width: none; 
+        }
+        #lista-indizi::-webkit-scrollbar { display: none; } 
+
+        .folder-wrapper { display: flex; flex-direction: column; align-items: center; min-width: 90px; cursor: pointer; position: relative; }
+        .folder-icon { width: 65px; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), filter 0.25s; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.15)); }
+        .folder-wrapper.active .folder-icon { transform: scale(1.08); filter: drop-shadow(0 0 12px var(--team)); }
+
+        .new-badge {
+            position: absolute; top: -2px; right: 12px; width: 14px; height: 14px; background: var(--red-alert);
+            border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); display: none; animation: pulseAlert 2s infinite;
+        }
+        .folder-wrapper.has-new .new-badge { display: block; }
+        @keyframes pulseAlert { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.6); } 70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(255, 51, 51, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); } }
+        .folder-label { font-family: 'Special Elite', cursive; font-size: 0.75rem; margin-top: 6px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; font-weight: bold; color: #333; }
+
+        #content-viewer { flex: 1; overflow-y: auto; padding: 10px 5px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+
+        .clue-card { background: white; padding: 18px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); opacity: 0; transform: translateY(20px); transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .clue-card.show { opacity: 1; transform: translateY(0); }
+        .clue-card img { width: 100%; border-radius: 8px; display: block; filter: contrast(1.05); }
+        .text-box { background: #fdfdf8; padding: 15px; border-left: 4px solid var(--team); border-radius: 4px 12px 12px 4px; font-size: 0.9rem; white-space: pre-wrap; }
+        .empty-state { text-align: center; color: #777; margin-top: 60px; font-style: italic; font-family: 'Special Elite', cursive; padding: 20px; }
+
+        #messaggio-regia { background: rgba(17, 17, 17, 0.85); backdrop-filter: blur(10px); color: #4ade80; padding: 12px 16px; display: none; font-family: 'Fira Code', monospace; font-size: 0.8rem; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* BOX AZIONI BOTTOM (Mutevole) */
+        .action-box-container { 
+            padding: 16px; background: var(--ios-glass); backdrop-filter: blur(12px) saturate(180%); -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid var(--ios-border); border-radius: 24px; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); flex-shrink: 0; z-index: 10; 
+        }
+        
+        textarea { width: 100%; height: 65px; padding: 12px; box-sizing: border-box; background: rgba(255,255,255,0.6); font-family: inherit; resize: none; border: 1px solid rgba(0,0,0,0.1); border-radius: 14px; font-size: 0.9rem; outline: none; transition: background 0.2s, border-color 0.2s; }
+        textarea:focus { background: rgba(255,255,255,0.9); border-color: var(--team); }
+        
+        button.action-btn { width: 100%; padding: 14px; background: var(--team); color: white; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: 'Fira Code', monospace; font-size: 0.85rem; letter-spacing: 1px; transition: transform 0.1s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 10px; }
+        button.action-btn:active { transform: scale(0.98); filter: brightness(1.1); }
+
+        /* Componenti Quiz */
+        .quiz-opt-btn { background: #111 !important; color: white; border: none; text-align: left !important; padding: 12px 15px !important; font-family: 'Courier New', monospace !important; border-radius: 12px !important; font-size: 0.85rem !important; cursor: pointer; transition: 0.2s; }
+        .quiz-opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        select#quiz-selector { width: 100%; padding: 10px; font-family: 'Courier New', monospace; border-radius: 8px; border: 1px solid var(--warning); background: rgba(255,255,255,0.8); font-weight: bold; margin-bottom: 10px; outline: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header"><div id="display-nome">IDENTIFICAZIONE SQUADRA...</div></div>
+    <div id="messaggio-regia"></div>
+    <div id="lista-indizi"></div>
+
+    <div id="content-viewer">
+        <div class="empty-state">Seleziona una cartella in alto per visualizzare i documenti investigativi.</div>
+    </div>
+
+    <!-- BOX AZIONI DINAMICO (Rapporto o Quiz) -->
+    <div class="action-box-container" id="bottom-action-box">
+        
+        <!-- MODALITÀ RAPPORTO NORMALE -->
+        <div id="accusa-mode">
+            <textarea id="accusa-testo" placeholder="Inserite qui le vostre conclusioni finali..."></textarea>
+            <button class="action-btn" onclick="inviaAccusa()">TRASMETTI RAPPORTO</button>
+        </div>
+
+        <!-- MODALITÀ QUIZ LIVE -->
+        <div id="quiz-mode" style="display: none;">
+            <div style="font-family: 'Special Elite', cursive; font-size: 0.8rem; color: #b25900; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 4px; margin-bottom: 8px;">
+                ⚠️ TRASMISSIONE LOGICA IN CORSO...
+            </div>
+            
+            <select id="quiz-selector" onchange="renderSpecificQuiz()"></select>
+            
+            <p id="player-quiz-domanda" style="font-family: 'Courier New', monospace; font-size: 0.9rem; margin: 0 0 12px 0; font-weight: bold; color:#111;"></p>
+            
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="quiz-opt-btn" onclick="inviaRispostaQuiz('A')" id="optBtn-A">A) </button>
+                <button class="quiz-opt-btn" onclick="inviaRispostaQuiz('B')" id="optBtn-B">B) </button>
+                <button class="quiz-opt-btn" onclick="inviaRispostaQuiz('C')" id="optBtn-C">C) </button>
+                <button class="quiz-opt-btn" onclick="inviaRispostaQuiz('D')" id="optBtn-D">D) </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_q3Yt00_mi_5-yRzfNa1j6-d5QQ6dyiM",
+            authDomain: "crimeengine2026-565ef.firebaseapp.com",
+            databaseURL: "https://crimeengine2026-565ef-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "crimeengine2026-565ef",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mioSlot = urlParams.get('slot') || 'A'; 
+        const canale = (mioSlot === 'A') ? 'giovani' : 'vecchi';
+        document.body.className = 'team-' + mioSlot;
+
+        let indiziRicevuti = {}; let indiziLetti = {}; let currentCat = null; 
+        
+        let quizDisponibili = {}; 
+        let mieRisposteEffettuate = {};
+
+        db.ref('nomi_squadre/' + mioSlot).on('value', snap => { document.getElementById('display-nome').innerText = snap.val() || "SQUADRA " + mioSlot; });
+
+        db.ref('partita/' + canale + '/letti').on('value', snap => { indiziLetti = snap.val() || {}; refreshNewBadges(); });
+        db.ref('partita/' + canale + '/indizi').on('value', snap => { indiziRicevuti = snap.val() || {}; renderFolders(); if (currentCat) renderContent(currentCat); });
+
+        function renderFolders() {
+            const container = document.getElementById('lista-indizi'); const currentScroll = container.scrollLeft;
+            container.innerHTML = "";
+            const categorie = [...new Set(Object.values(indiziRicevuti).map(i => i.cat))];
+
+            categorie.forEach(cat => {
+                const wrapper = document.createElement('div'); wrapper.className = 'folder-wrapper'; wrapper.id = 'folder-' + cat.replace(/\s/g, ''); 
+                wrapper.onclick = () => selectFolder(wrapper, cat);
+                if (Object.values(indiziRicevuti).filter(i => i.cat === cat).some(i => !indiziLetti[i.id])) wrapper.classList.add('has-new');
+                wrapper.innerHTML = `<div class="new-badge"></div><img src="https://i.postimg.cc/Pf7tskrK/image.png" class="folder-icon"><div class="folder-label">${cat.toUpperCase()}</div>`;
+                container.appendChild(wrapper);
+            });
+            container.scrollLeft = currentScroll;
+            if (currentCat) { const activeFolder = document.getElementById('folder-' + currentCat.replace(/\s/g, '')); if (activeFolder) activeFolder.classList.add('active'); }
+        }
+
+        function refreshNewBadges() {
+            document.querySelectorAll('.folder-wrapper').forEach(wrapper => {
+                const catLabel = wrapper.querySelector('.folder-label').innerText.toLowerCase();
+                const originalCat = [...new Set(Object.values(indiziRicevuti).map(i => i.cat))].find(c => c.toLowerCase() === catLabel);
+                if (originalCat) {
+                    if (Object.values(indiziRicevuti).filter(i => i.cat === originalCat).some(i => !indiziLetti[i.id])) wrapper.classList.add('has-new');
+                    else wrapper.classList.remove('has-new');
+                }
+            });
+        }
+
+        function selectFolder(element, catName) {
+            document.querySelectorAll('.folder-wrapper').forEach(f => f.classList.remove('active'));
+            element.classList.add('active'); element.classList.remove('has-new'); currentCat = catName;
+            Object.values(indiziRicevuti).filter(i => i.cat === catName).forEach(i => { db.ref('partita/' + canale + '/letti/' + i.id).set(true); });
+            renderContent(catName); try { new Audio('https://www.soundjay.com/buttons/sounds/button-20.mp3').play(); } catch(e){}
+        }
+
+        function renderContent(catName) {
+            const viewer = document.getElementById('content-viewer'); viewer.innerHTML = ""; 
+            const cluesToShow = Object.values(indiziRicevuti).filter(i => i.cat === catName);
+
+            cluesToShow.forEach((i, index) => {
+                let media = "";
+                if (i.type === 'img') media = `<img src="${i.url}">`;
+                if (i.type === 'text') media = `<div class="text-box">${i.url}</div>`;
+                if (i.type === 'audio') media = `<audio controls style="width:100%"><source src="${i.url}"></audio>`;
+                const card = document.createElement('div'); card.className = 'clue-card';
+                card.innerHTML = `<div style="font-size:0.7rem; color:#888; margin-bottom:5px; font-family:'Courier New'; border-bottom:1px solid #eee;">RIF. PROVA: ${i.id}</div>${media}<div style="font-weight:bold; margin-top:10px; font-family:'Courier New'; font-size:0.9rem;">${i.tit || "Documento Senza Titolo"}</div>`;
+                viewer.appendChild(card); setTimeout(() => { card.classList.add('show'); }, index * 120); 
+            });
+            viewer.scrollTo(0,0);
+        }
+
+        db.ref('partita/' + canale + '/messaggio').on('value', snap => {
+            const m = snap.val();
+            if (m && m.trim() !== "") {
+                const b = document.getElementById('messaggio-regia'); b.innerText = ">> COMUNICAZIONE PRIORITARIA REGIA: " + m; b.style.display = 'block';
+                setTimeout(() => b.style.display = 'none', 20000); 
+            }
+        });
+
+        db.ref('partita/risposte_quiz').on('value', snap => {
+            const tutteRisposte = snap.val() || {};
+            mieRisposteEffettuate = {};
+            Object.keys(tutteRisposte).forEach(quizId => {
+                if(tutteRisposte[quizId][canale]) {
+                    mieRisposteEffettuate[quizId] = tutteRisposte[quizId][canale];
+                }
+            });
+            if (Object.keys(quizDisponibili).length > 0) renderSpecificQuiz();
+        });
+
+        db.ref('partita/quiz_repository').on('value', snap => {
+            const oldQuizCount = Object.keys(quizDisponibili).length;
+            quizDisponibili = snap.val() || {};
+            const newQuizCount = Object.keys(quizDisponibili).length;
+            
+            const accusaMode = document.getElementById('accusa-mode');
+            const quizMode = document.getElementById('quiz-mode');
+            const selector = document.getElementById('quiz-selector');
+
+            if (newQuizCount === 0) {
+                quizMode.style.display = 'none';
+                accusaMode.style.display = 'block';
+                document.getElementById('bottom-action-box').style.background = 'var(--ios-glass)';
+                document.getElementById('bottom-action-box').style.border = '1px solid var(--ios-border)';
+            } else {
+                if (newQuizCount > oldQuizCount) { try { new Audio('https://www.soundjay.com/buttons/sounds/beep-07.mp3').play(); } catch(e){} }
+                accusaMode.style.display = 'none';
+                quizMode.style.display = 'block';
+                document.getElementById('bottom-action-box').style.background = 'rgba(255, 238, 204, 0.95)';
+                document.getElementById('bottom-action-box').style.border = '2px solid var(--warning)';
+
+                selector.innerHTML = "";
+                let indexCounter = 1;
+                Object.keys(quizDisponibili).forEach(qId => {
+                    const option = document.createElement('option');
+                    option.value = qId;
+                    const statusIcon = mieRisposteEffettuate[qId] ? "✓ " : "▶ ";
+                    option.text = statusIcon + "DISPACCIO OPERATIVO #" + indexCounter;
+                    selector.appendChild(option);
+                    indexCounter++;
+                });
+
+                selector.style.display = newQuizCount > 1 ? 'block' : 'none';
+                renderSpecificQuiz();
+            }
+        });
+
+        function renderSpecificQuiz() {
+            const selector = document.getElementById('quiz-selector');
+            if(!selector.value || !quizDisponibili[selector.value]) return;
+            
+            const selectedQuizId = selector.value;
+            const quiz = quizDisponibili[selectedQuizId];
+            
+            document.getElementById('player-quiz-domanda').innerText = quiz.domanda;
+            document.getElementById('optBtn-A').innerText = "A) " + quiz.opzioni.A;
+            document.getElementById('optBtn-B').innerText = "B) " + quiz.opzioni.B;
+            document.getElementById('optBtn-C').innerText = "C) " + quiz.opzioni.C;
+            document.getElementById('optBtn-D').innerText = "D) " + quiz.opzioni.D;
+
+            if (mieRisposteEffettuate[selectedQuizId]) {
+                document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.disabled = true);
+            } else {
+                document.querySelectorAll('.quiz-opt-btn').forEach(btn => {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                });
+            }
+        }
+
+        function inviaRispostaQuiz(scelta) {
+            const selectedQuizId = document.getElementById('quiz-selector').value;
+            if(!selectedQuizId || !quizDisponibili[selectedQuizId] || mieRisposteEffettuate[selectedQuizId]) return;
+
+            const quizInfo = quizDisponibili[selectedQuizId];
+            const esitoCorretto = (scelta === quizInfo.corretta);
+
+            document.querySelectorAll('.quiz-opt-btn').forEach(btn => btn.disabled = true);
+
+            db.ref('partita/risposte_quiz/' + selectedQuizId + '/' + canale).set({
+                squadra: document.getElementById('display-nome').innerText,
+                sceltaEffettuata: scelta,
+                esito: esitoCorretto ? "CORRETTO" : "ERRATO",
+                ora: new Date().toLocaleTimeString()
+            });
+        }
+
+        function inviaAccusa() {
+            const t = document.getElementById('accusa-testo').value.trim();
+            if(!t) return alert("Inserite un rapporto prima di trasmettere!");
+            if(confirm("Confermate la trasmissione del rapporto finale alla Centrale?")) {
+                db.ref('partita/accuse/' + canale).set({
+                    nomeSquadra: document.getElementById('display-nome').innerText,
+                    testo: t,
+                    ora: new Date().toLocaleTimeString()
+                }).then(() => {
+                    alert("Rapporto trasmesso correttamente. Restate in attesa di istruzioni.");
+                    document.getElementById('accusa-testo').value = "";
+                });
+            }
+        }
+    </script>
+</body>
+</html>
