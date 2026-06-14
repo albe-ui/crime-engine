@@ -99,7 +99,21 @@
 
         /* ===== RESPONSIVE DESIGN ===== */
 
-        /* Schermi piccoli (smartphone, max 480px) */
+        /* TABLET e DESKTOP (481px+): layout scrollabile, niente taglio */
+        @media (min-width: 481px) {
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+            }
+            #content-viewer {
+                flex: none;
+                min-height: 200px;
+                overflow-y: visible;
+            }
+        }
+
+        /* Smartphone piccoli (max 480px): layout app fisso come originale */
         @media (max-width: 480px) {
             body { padding: 8px; gap: 8px; }
             #display-nome { font-size: 1rem; }
@@ -117,55 +131,56 @@
             #player-quiz-domanda { font-size: 0.82rem; }
         }
 
-        /* Schermi medi (tablet, 481px-768px) */
+        /* Tablet verticale (481px - 768px) */
         @media (min-width: 481px) and (max-width: 768px) {
-            body { padding: 10px; gap: 8px; }
+            body { padding: 14px; gap: 12px; }
             #display-nome { font-size: 1.1rem; }
-            .header { padding: 10px 14px; }
+            .header { padding: 12px 16px; }
             .folder-icon { width: 58px; }
             .folder-wrapper { min-width: 80px; }
-            .clue-card { padding: 14px; }
-            textarea { height: 52px; font-size: 0.85rem; }
-            button.action-btn { padding: 11px; font-size: 0.82rem; margin-top: 8px; }
-            .action-box-container { padding: 12px 14px; border-radius: 20px; }
-            #lista-indizi { padding: 10px 10px; }
-            .quiz-opt-btn { padding: 10px 13px !important; font-size: 0.82rem !important; }
-            #player-quiz-domanda { font-size: 0.85rem; margin-bottom: 8px; }
+            .clue-card { padding: 16px; }
+            textarea { height: 70px; font-size: 0.88rem; }
+            button.action-btn { padding: 13px; font-size: 0.85rem; margin-top: 10px; }
+            .action-box-container { padding: 14px 16px; border-radius: 22px; }
+            #lista-indizi { padding: 12px; }
+            .quiz-opt-btn { padding: 11px 14px !important; font-size: 0.85rem !important; }
+            #player-quiz-domanda { font-size: 0.88rem; }
         }
 
-        /* Schermi grandi (desktop/tablet orizzontale, 769px+) */
+        /* Desktop e tablet orizzontale (769px+) */
         @media (min-width: 769px) {
             body { 
-                padding: 20px; 
+                padding: 24px; 
                 gap: 16px; 
-                max-width: 900px; 
+                max-width: 860px; 
                 margin: 0 auto; 
             }
             #display-nome { font-size: 1.4rem; letter-spacing: 2px; }
             .header { padding: 18px 24px; }
             #lista-indizi { padding: 18px 20px; gap: 28px; }
-            .folder-icon { width: 80px; }
+            .folder-icon { width: 78px; }
             .folder-wrapper { min-width: 110px; }
             .folder-label { font-size: 0.82rem; max-width: 120px; }
             .clue-card { padding: 24px; border-radius: 20px; }
             .text-box { font-size: 1rem; padding: 18px; }
             textarea { height: 80px; font-size: 1rem; }
-            button.action-btn { font-size: 0.92rem; padding: 16px; }
+            button.action-btn { font-size: 0.92rem; padding: 16px; margin-top: 12px; }
             .quiz-opt-btn { font-size: 0.92rem !important; padding: 14px 18px !important; }
             .action-box-container { padding: 20px; border-radius: 28px; }
             #player-quiz-domanda { font-size: 1rem; }
         }
 
         /* Landscape su smartphone piccoli */
-        @media (max-height: 500px) and (orientation: landscape) {
-            body { gap: 6px; padding: 6px; }
+        @media (max-width: 768px) and (max-height: 500px) and (orientation: landscape) {
+            body { gap: 6px; padding: 6px; height: 100vh; overflow: hidden; }
             .header { padding: 6px 12px; }
-            #display-nome { font-size: 0.9rem; }
+            #display-nome { font-size: 0.88rem; }
             #lista-indizi { padding: 6px 10px; }
-            .folder-icon { width: 44px; }
-            textarea { height: 48px; }
-            button.action-btn { padding: 9px; font-size: 0.75rem; margin-top: 6px; }
-            .action-box-container { padding: 8px 12px; }
+            .folder-icon { width: 40px; }
+            textarea { height: 44px; }
+            button.action-btn { padding: 8px; font-size: 0.75rem; margin-top: 5px; }
+            .action-box-container { padding: 7px 10px; }
+            #content-viewer { flex: 1; overflow-y: auto; }
         }
     </style>
 </head>
